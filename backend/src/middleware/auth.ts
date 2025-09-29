@@ -15,7 +15,7 @@ export const authenticateToken = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction
-) => {
+): Promise<Response | void> => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
@@ -58,7 +58,7 @@ export const authenticateToken = async (
 };
 
 export const requireRole = (roles: string[]) => {
-  return (req: AuthRequest, res: Response, next: NextFunction) => {
+  return (req: AuthRequest, res: Response, next: NextFunction): Response | void => {
     if (!req.user) {
       return res.status(401).json({ 
         success: false, 

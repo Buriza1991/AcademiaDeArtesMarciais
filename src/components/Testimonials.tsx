@@ -89,7 +89,7 @@ const Testimonials: React.FC = () => {
               
               <div className="flex items-center justify-center space-x-1 mb-6">
                 {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
+                  <Star key={i} className="w-5 h-5 text-red-400 fill-current" />
                 ))}
               </div>
             </div>

@@ -65,7 +65,7 @@ const Sobre: React.FC = () => {
           inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
         }`}>
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-            Sobre a <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-yellow-400">Academia</span>
+            Sobre a <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-white">Academia</span>
           </h2>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
             Há mais de 15 anos formando guerreiros e transformando vidas através das artes marciais.
@@ -94,7 +94,7 @@ const Sobre: React.FC = () => {
                 <div className="text-gray-400">Alunos Formados</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-yellow-400 mb-2">50+</div>
+                <div className="text-3xl font-bold text-red-400 mb-2">50+</div>
                 <div className="text-gray-400">Campeões</div>
               </div>
             </div>
@@ -125,7 +125,7 @@ const Sobre: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {valores.map((valor, index) => (
               <div key={index} className="text-center bg-black/30 rounded-2xl p-6 hover:bg-black/50 transition-colors">
-                <div className="w-16 h-16 bg-gradient-to-r from-red-600 to-yellow-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 bg-gradient-to-r from-red-600 to-gray-900 rounded-2xl flex items-center justify-center mx-auto mb-4">
                   <valor.icon className="w-8 h-8 text-white" />
                 </div>
                 <h4 className="text-xl font-bold text-white mb-3">{valor.titulo}</h4>
@@ -157,7 +157,7 @@ const Sobre: React.FC = () => {
                 <div className="space-y-1">
                   {instrutor.conquistas.map((conquista, idx) => (
                     <div key={idx} className="flex items-center justify-center space-x-2">
-                      <Star className="w-4 h-4 text-yellow-400" />
+                      <Star className="w-4 h-4 text-red-400" />
                       <span className="text-gray-300 text-sm">{conquista}</span>
                     </div>
                   ))}

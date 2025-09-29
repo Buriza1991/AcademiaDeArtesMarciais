@@ -49,7 +49,7 @@ const Modalidades: React.FC = () => {
           inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
         }`}>
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-            Nossas <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-yellow-400">Modalidades</span>
+            Nossas <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-white">Modalidades</span>
           </h2>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
             Descubra a arte marcial perfeita para você. Cada modalidade oferece benefícios únicos para seu desenvolvimento físico e mental.

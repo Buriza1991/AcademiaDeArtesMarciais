@@ -17,7 +17,7 @@ const Footer: React.FC = () => {
           {/* Logo e Descrição */}
           <div className="lg:col-span-2">
             <div className="flex items-center space-x-3 mb-6">
-              <div className="w-12 h-12 bg-gradient-to-r from-red-600 to-yellow-500 rounded-lg flex items-center justify-center">
+              <div className="w-12 h-12 bg-gradient-to-r from-red-600 to-gray-900 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-xl">ST</span>
               </div>
               <div>

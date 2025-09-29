@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useInView } from 'react-intersection-observer';
-import { Users, User, Calendar, Phone, Award, ArrowLeft, Search } from 'lucide-react';
+import { Users, User, Calendar, Award, ArrowLeft, Search } from 'lucide-react';
 import { AuthService } from '../services/api';
 
 interface Student {
@@ -13,6 +13,7 @@ interface Student {
   belt: string;
   modality: string;
   phone: string;
+  photo?: string | null;
   createdAt: string;
 }
 
@@ -112,7 +113,7 @@ const AlunosCadastrados: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-600 to-yellow-400">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-red-600">
       <div className="container mx-auto px-6 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -202,6 +203,7 @@ const AlunosCadastrados: React.FC = () => {
               <table className="w-full">
                 <thead className="bg-white/20">
                   <tr>
+                    <th className="px-6 py-4 text-left text-white font-semibold">Foto</th>
                     <th className="px-6 py-4 text-left text-white font-semibold">ID</th>
                     <th className="px-6 py-4 text-left text-white font-semibold">Nome</th>
                     <th className="px-6 py-4 text-left text-white font-semibold">Idade</th>
@@ -216,6 +218,19 @@ const AlunosCadastrados: React.FC = () => {
                     <tr key={student.userId} className={`border-b border-white/10 hover:bg-white/5 transition-colors ${
                       index % 2 === 0 ? 'bg-white/5' : 'bg-white/10'
                     }`}>
+                      <td className="px-6 py-4">
+                        <div className="w-12 h-12 rounded-full overflow-hidden bg-white/20 flex items-center justify-center">
+                          {student.photo ? (
+                            <img
+                              src={student.photo}
+                              alt={`Foto de ${student.name}`}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <User className="w-6 h-6 text-white/60" />
+                          )}
+                        </div>
+                      </td>
                       <td className="px-6 py-4 text-white font-mono font-bold">
                         {student.id}
                       </td>

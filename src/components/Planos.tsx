@@ -60,7 +60,7 @@ const Planos: React.FC = () => {
         'Mentoria individual'
       ],
       popular: false,
-      color: 'from-yellow-500 to-yellow-600'
+      color: 'from-red-500 to-gray-800'
     }
   ];
 
@@ -77,7 +77,7 @@ const Planos: React.FC = () => {
           inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
         }`}>
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-            Planos e <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-yellow-400">Valores</span>
+            Planos e <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-white">Valores</span>
           </h2>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
             Escolha o plano ideal para sua jornada nas artes marciais. Todos os planos incluem aula experimental gratuita.
@@ -148,7 +148,7 @@ const Planos: React.FC = () => {
         </div>
 
         {/* Special Offers */}
-        <div className={`mt-16 bg-gradient-to-r from-red-600/20 to-yellow-500/20 rounded-2xl p-8 border border-red-500/30 transition-all duration-1000 delay-700 ${
+        <div className={`mt-16 bg-gradient-to-r from-red-600/20 to-gray-900/20 rounded-2xl p-8 border border-red-500/30 transition-all duration-1000 delay-700 ${
           inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
         }`}>
           <div className="text-center">
@@ -159,7 +159,7 @@ const Planos: React.FC = () => {
                 <p className="text-gray-300">50% de desconto para novos alunos</p>
               </div>
               <div className="bg-black/30 rounded-lg p-6">
-                <h4 className="text-lg font-semibold text-yellow-400 mb-2">Traga um Amigo</h4>
+                <h4 className="text-lg font-semibold text-red-400 mb-2">Traga um Amigo</h4>
                 <p className="text-gray-300">Ganhe 1 mês grátis por indicação</p>
               </div>
             </div>

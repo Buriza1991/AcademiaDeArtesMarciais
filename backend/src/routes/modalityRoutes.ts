@@ -5,7 +5,7 @@ const router = express.Router();
 const prisma = new PrismaClient();
 
 // Buscar todas as modalidades
-router.get('/', async (req, res) => {
+router.get('/', async (_req, res) => {
   try {
     const modalities = await prisma.modality.findMany({
       where: {
@@ -62,14 +62,14 @@ router.get('/:id', async (req, res) => {
       });
     }
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Modalidade encontrada com sucesso',
       data: modality
     });
   } catch (error) {
     console.error('Erro ao buscar modalidade:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Erro interno do servidor'
     });

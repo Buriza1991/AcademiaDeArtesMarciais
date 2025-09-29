@@ -1,7 +1,6 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
 import path from 'path';
 import { config } from './config/environment.js';
 import { fileURLToPath } from 'url';
@@ -59,7 +58,7 @@ app.use(helmet({
 // app.use(limiter);
 
 // Middleware de logging
-app.use((req, res, next) => {
+app.use((req, _res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
   next();
 });
@@ -72,7 +71,7 @@ app.use('/api/profiles', profileRoutes);
 app.use('/api/modalities', modalityRoutes);
 
 // Rota de health check
-app.get('/api/health', (req, res) => {
+app.get('/api/health', (_req, res) => {
   res.json({
     success: true,
     message: 'Servidor funcionando corretamente',
@@ -82,7 +81,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Middleware de tratamento de erros
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error('Erro não tratado:', err);
   
   res.status(500).json({
@@ -92,7 +91,7 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 });
 
 // Middleware para rotas não encontradas
-app.use('*', (req, res) => {
+app.use('*', (_req, res) => {
   res.status(404).json({
     success: false,
     message: 'Rota não encontrada'

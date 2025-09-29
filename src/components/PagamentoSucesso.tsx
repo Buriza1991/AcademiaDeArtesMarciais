@@ -133,7 +133,7 @@ const PagamentoSucesso: React.FC = () => {
           {/* Action Buttons */}
           <div className="grid md:grid-cols-2 gap-4 mb-8">
             {state?.paymentMethod === 'boleto' && (
-              <button className="flex items-center justify-center space-x-2 bg-orange-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-600 transition-all duration-200">
+              <button className="flex items-center justify-center space-x-2 bg-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition-all duration-200">
                 <Download className="w-5 h-5" />
                 <span>Baixar Boleto</span>
               </button>

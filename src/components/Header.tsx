@@ -13,7 +13,6 @@ const Header: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const profileRef = useRef<HTMLDivElement>(null);
-  const closeTimeout = useRef<number | null>(null);
   const [isHeaderHovered, setIsHeaderHovered] = useState(false);
 
   // Só mostra o header na página inicial

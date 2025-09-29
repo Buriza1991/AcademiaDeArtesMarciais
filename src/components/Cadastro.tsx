@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Camera, X, RotateCcw, Check } from 'lucide-react';
 import { AuthService, ProfileService } from '../services/api';
 
 const Cadastro: React.FC = () => {
@@ -32,6 +33,13 @@ const Cadastro: React.FC = () => {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [imageConsent, setImageConsent] = useState(false);
 
+  // Foto do aluno
+  const [photo, setPhoto] = useState<string | null>(null);
+  const [showCamera, setShowCamera] = useState(false);
+  const [stream, setStream] = useState<MediaStream | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
   // Controle
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -47,6 +55,68 @@ const Cadastro: React.FC = () => {
   ];
   const beltsJiuAdulto = ['Branca', 'Azul', 'Roxa', 'Marrom', 'Preta'];
   const beltsMuayThai = ['Branca', 'Amarela', 'Laranja', 'Azul', 'Roxa', 'Vermelha', 'Preta'];
+
+  // Funções da câmera
+  const startCamera = async () => {
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'user' } 
+      });
+      setStream(mediaStream);
+      setShowCamera(true);
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = mediaStream;
+      }
+    } catch (error) {
+      console.error('Erro ao acessar câmera:', error);
+      setError('Não foi possível acessar a câmera. Verifique as permissões.');
+    }
+  };
+
+  const stopCamera = () => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      setStream(null);
+    }
+    setShowCamera(false);
+  };
+
+  const capturePhoto = () => {
+    if (videoRef.current && canvasRef.current) {
+      const canvas = canvasRef.current;
+      const video = videoRef.current;
+      const context = canvas.getContext('2d');
+      
+      if (context) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        context.drawImage(video, 0, 0);
+        
+        const photoDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        setPhoto(photoDataUrl);
+        stopCamera();
+      }
+    }
+  };
+
+  const retakePhoto = () => {
+    setPhoto(null);
+    startCamera();
+  };
+
+  const removePhoto = () => {
+    setPhoto(null);
+  };
+
+  // Cleanup ao desmontar o componente
+  useEffect(() => {
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, [stream]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,6 +152,7 @@ const Cadastro: React.FC = () => {
             healthIssues: `${lesion ? `Lesões: ${lesion}. ` : ''}${medicalConditions ? `Condições médicas: ${medicalConditions}. ` : ''}${priorExperience ? `Experiência anterior: ${priorExperience}` : ''}`,
             experience: `Modalidade: ${mode}, Faixa: ${belt}, Grupo: ${ageGroup}`,
             objectives: `Termos aceitos: ${termsAccepted}, Uso de imagem: ${imageConsent}`,
+            photo: photo || null, // Incluir a foto no perfil
           };
 
           // Salvar o perfil no backend
@@ -133,7 +204,7 @@ const Cadastro: React.FC = () => {
   }, [age]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-600 to-yellow-400">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-red-600">
       <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-2xl relative">
         <button
           onClick={() => navigate('/')}
@@ -173,6 +244,87 @@ const Cadastro: React.FC = () => {
             <label className="block text-sm font-medium text-gray-700 mb-1">Endereço completo</label>
             <input value={address} onChange={e => setAddress(e.target.value)} className="w-full px-3 py-2 border rounded-md" required />
           </div>
+
+          {/* Foto do aluno */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-3">Foto do Aluno (opcional)</label>
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+              {!photo && !showCamera && (
+                <div>
+                  <Camera className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                  <p className="text-gray-600 mb-4">Tire uma selfie para o cadastro</p>
+                  <button
+                    type="button"
+                    onClick={startCamera}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2 mx-auto"
+                  >
+                    <Camera className="w-4 h-4" />
+                    <span>Abrir Câmera</span>
+                  </button>
+                </div>
+              )}
+
+              {showCamera && (
+                <div className="space-y-4">
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    className="w-full max-w-sm mx-auto rounded-lg"
+                  />
+                  <div className="flex justify-center space-x-3">
+                    <button
+                      type="button"
+                      onClick={capturePhoto}
+                      className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
+                    >
+                      <Check className="w-4 h-4" />
+                      <span>Capturar</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={stopCamera}
+                      className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors flex items-center space-x-2"
+                    >
+                      <X className="w-4 h-4" />
+                      <span>Cancelar</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {photo && (
+                <div className="space-y-4">
+                  <img
+                    src={photo}
+                    alt="Foto do aluno"
+                    className="w-48 h-48 object-cover rounded-lg mx-auto border-4 border-green-500"
+                  />
+                  <div className="flex justify-center space-x-3">
+                    <button
+                      type="button"
+                      onClick={retakePhoto}
+                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                      <span>Tirar Novamente</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={removePhoto}
+                      className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2"
+                    >
+                      <X className="w-4 h-4" />
+                      <span>Remover</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Canvas oculto para captura */}
+          <canvas ref={canvasRef} className="hidden" />
 
           {/* Responsável se menor */}
           {age > 0 && age < 18 && (

@@ -45,7 +45,7 @@ const PagamentoPagina: React.FC = () => {
       icon: FileText,
       description: 'Pagamento via boleto bancário',
       features: ['Vencimento em 3 dias', 'Sem taxas adicionais', 'Pagamento em qualquer banco', 'Comprovante oficial'],
-      color: 'bg-orange-500',
+      color: 'bg-red-600',
       benefits: 'Perfeito para quem prefere pagar no banco ou lotérica',
       processingTime: 'Até 2 dias úteis após pagamento'
     },

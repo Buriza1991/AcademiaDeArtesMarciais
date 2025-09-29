@@ -12,10 +12,10 @@ const router = Router();
 
 // Configuração do Multer para upload de arquivos
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
+  destination: (_req, _file, cb) => {
     cb(null, path.join(__dirname, '../../uploads'));
   },
-  filename: (req, file, cb) => {
+  filename: (_req, file, cb) => {
     // Gerar nome único para o arquivo
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     const extension = path.extname(file.originalname);
@@ -24,7 +24,7 @@ const storage = multer.diskStorage({
 });
 
 // Filtro para tipos de arquivo permitidos
-const fileFilter = (req: any, file: any, cb: any) => {
+const fileFilter = (_req: any, file: any, cb: any) => {
   const allowedImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
   const allowedVideoTypes = ['video/mp4', 'video/avi', 'video/mov', 'video/wmv', 'video/flv', 'video/webm'];
   

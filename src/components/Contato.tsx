@@ -46,7 +46,7 @@ const Contato: React.FC = () => {
           inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
         }`}>
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-            Entre em <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-yellow-400">Contato</span>
+            Entre em <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-white">Contato</span>
           </h2>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
             Estamos aqui para ajudar! Entre em contato conosco para tirar dúvidas, 
@@ -63,7 +63,7 @@ const Contato: React.FC = () => {
             
             <div className="space-y-6">
               <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-gradient-to-r from-red-600 to-yellow-500 rounded-xl flex items-center justify-center">
+                <div className="w-12 h-12 bg-gradient-to-r from-red-600 to-gray-900 rounded-xl flex items-center justify-center">
                   <MapPin className="w-6 h-6 text-white" />
                 </div>
                 <div>
@@ -73,7 +73,7 @@ const Contato: React.FC = () => {
               </div>
 
               <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-gradient-to-r from-red-600 to-yellow-500 rounded-xl flex items-center justify-center">
+                <div className="w-12 h-12 bg-gradient-to-r from-red-600 to-gray-900 rounded-xl flex items-center justify-center">
                   <Phone className="w-6 h-6 text-white" />
                 </div>
                 <div>
@@ -83,7 +83,7 @@ const Contato: React.FC = () => {
               </div>
 
               <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-gradient-to-r from-red-600 to-yellow-500 rounded-xl flex items-center justify-center">
+                <div className="w-12 h-12 bg-gradient-to-r from-red-600 to-gray-900 rounded-xl flex items-center justify-center">
                   <Mail className="w-6 h-6 text-white" />
                 </div>
                 <div>
