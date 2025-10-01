@@ -18,11 +18,14 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ onUploadSuccess }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [uploadMode, setUploadMode] = useState<'single' | 'multiple'>('single');
   const [mediaUrl, setMediaUrl] = useState('');
   const [uploadType, setUploadType] = useState<'file' | 'url'>('file');
   const [uploading, setUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
+  const [uploadProgress, setUploadProgress] = useState<{[key: string]: number}>({});
 
   useEffect(() => {
     async function fetchModalities() {
@@ -35,35 +38,131 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ onUploadSuccess }) => {
   }, []);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
+    const files = event.target.files;
+    if (!files) return;
+
+    const fileArray = Array.from(files);
+    const allowedImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    const allowedVideoTypes = ['video/mp4', 'video/avi', 'video/mov', 'video/wmv', 'video/flv', 'video/webm'];
+    
+    const validFiles: File[] = [];
+    const errors: string[] = [];
+
+    fileArray.forEach((file, index) => {
       // Validar tipo de arquivo
-      const allowedImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-      const allowedVideoTypes = ['video/mp4', 'video/avi', 'video/mov', 'video/wmv', 'video/flv', 'video/webm'];
-      
       if (!allowedImageTypes.includes(file.type) && !allowedVideoTypes.includes(file.type)) {
-        setErrorMessage('Tipo de arquivo não suportado. Use apenas imagens (jpg, png, gif, webp) ou vídeos (mp4, avi, mov, wmv, flv, webm).');
+        errors.push(`${file.name}: Tipo de arquivo não suportado.`);
         return;
       }
 
       // Validar tamanho (50MB máximo)
       if (file.size > 50 * 1024 * 1024) {
-        setErrorMessage('Arquivo muito grande. Tamanho máximo: 50MB.');
+        errors.push(`${file.name}: Arquivo muito grande (máx: 50MB).`);
         return;
       }
 
-      setSelectedFile(file);
+      validFiles.push(file);
+    });
+
+    if (errors.length > 0) {
+      setErrorMessage(errors.join('\n'));
+    } else {
       setErrorMessage('');
     }
+
+    if (uploadMode === 'single') {
+      setSelectedFile(validFiles[0] || null);
+    } else {
+      setSelectedFiles(validFiles);
+    }
+  };
+
+  const uploadSingleFile = async () => {
+    console.log('🚀 Iniciando upload único...');
+    const formData = new FormData();
+    formData.append('file', selectedFile!);
+    formData.append('title', title);
+    formData.append('description', description);
+    formData.append('modalityId', selectedModality);
+
+    const response = await MediaService.uploadMedia(formData);
+    
+    if (response.success) {
+      setUploadStatus('success');
+      resetForm();
+      if (onUploadSuccess) onUploadSuccess();
+    } else {
+      setUploadStatus('error');
+      setErrorMessage(response.error || 'Erro ao fazer upload do arquivo.');
+    }
+  };
+
+  const uploadMultipleFiles = async () => {
+    console.log('🚀 Iniciando upload múltiplo...');
+    const uploadPromises = selectedFiles.map(async (file) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('title', title || file.name.split('.')[0]);
+      formData.append('description', description);
+      formData.append('modalityId', selectedModality);
+
+      try {
+        setUploadProgress(prev => ({ ...prev, [file.name]: 0 }));
+        const response = await MediaService.uploadMedia(formData);
+        setUploadProgress(prev => ({ ...prev, [file.name]: 100 }));
+        return { success: response.success, fileName: file.name, error: response.error };
+      } catch (error) {
+        setUploadProgress(prev => ({ ...prev, [file.name]: -1 }));
+        return { success: false, fileName: file.name, error: 'Erro no upload' };
+      }
+    });
+
+    const results = await Promise.all(uploadPromises);
+    const successful = results.filter(r => r.success);
+    const failed = results.filter(r => !r.success);
+
+    if (successful.length === selectedFiles.length) {
+      setUploadStatus('success');
+      resetForm();
+      if (onUploadSuccess) onUploadSuccess();
+    } else if (successful.length > 0) {
+      setUploadStatus('success');
+      setErrorMessage(`${successful.length} arquivos enviados. ${failed.length} falharam: ${failed.map(f => f.fileName).join(', ')}`);
+      if (onUploadSuccess) onUploadSuccess();
+    } else {
+      setUploadStatus('error');
+      setErrorMessage(`Todos os uploads falharam: ${failed.map(f => f.fileName).join(', ')}`);
+    }
+  };
+
+  const resetForm = () => {
+    setTitle('');
+    setDescription('');
+    setSelectedFile(null);
+    setSelectedFiles([]);
+    setMediaUrl('');
+    setUploadProgress({});
+    setSelectedModality('');
+    
+    // Limpar input de arquivo
+    const fileInput = document.getElementById('file-input') as HTMLInputElement;
+    if (fileInput) fileInput.value = '';
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
     if (uploadType === 'file') {
-      if (!selectedModality || !title || !selectedFile) {
-        setErrorMessage('Por favor, preencha todos os campos obrigatórios.');
-        return;
+      if (uploadMode === 'single') {
+        if (!selectedModality || !title || !selectedFile) {
+          setErrorMessage('Por favor, preencha todos os campos obrigatórios.');
+          return;
+        }
+      } else {
+        if (!selectedModality || selectedFiles.length === 0) {
+          setErrorMessage('Por favor, selecione uma modalidade e pelo menos um arquivo.');
+          return;
+        }
       }
     } else {
       if (!selectedModality || !title || !mediaUrl) {
@@ -89,33 +188,10 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ onUploadSuccess }) => {
 
     try {
       if (uploadType === 'file') {
-        console.log('🚀 Iniciando upload de arquivo...');
-        console.log('📁 Arquivo:', selectedFile);
-        console.log('📝 Título:', title);
-        console.log('🏷️ Modalidade ID:', selectedModality);
-        
-        const formData = new FormData();
-        formData.append('file', selectedFile!);
-        formData.append('title', title);
-        formData.append('description', description);
-        formData.append('modalityId', selectedModality);
-
-        console.log('📤 Enviando FormData para API...');
-        const response = await MediaService.uploadMedia(formData);
-        console.log('✅ Resposta da API:', response);
-
-        if (response.success) {
-          setUploadStatus('success');
-          setTitle('');
-          setDescription('');
-          setSelectedFile(null);
-          setSelectedModality('');
-          
-          // Limpar o input de arquivo
-          const fileInput = document.getElementById('file-input') as HTMLInputElement;
-          if (fileInput) {
-            fileInput.value = '';
-          }
+        if (uploadMode === 'single') {
+          await uploadSingleFile();
+        } else {
+          await uploadMultipleFiles();
         }
       } else {
         // Upload por URL
@@ -265,7 +341,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ onUploadSuccess }) => {
         {/* Título */}
         <div>
           <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-            Título *
+            Título {uploadMode === 'multiple' ? '(opcional - usa nome do arquivo se vazio)' : '*'}
           </label>
           <input
             type="text"
@@ -273,8 +349,8 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ onUploadSuccess }) => {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-            placeholder="Ex: Treino de Karatê - Aula Avançada"
-            required
+            placeholder={uploadMode === 'multiple' ? "Título geral (opcional)" : "Ex: Treino de Karatê - Aula Avançada"}
+            required={uploadMode === 'single'}
           />
         </div>
 
@@ -296,15 +372,31 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ onUploadSuccess }) => {
         {/* Upload de Arquivo */}
         {uploadType === 'file' && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Arquivo *
-            </label>
+            <div className="flex justify-between items-center mb-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Arquivo *
+              </label>
+              <div className="flex items-center space-x-2">
+                <label className="text-sm text-gray-600">Múltiplos arquivos:</label>
+                <input
+                  type="checkbox"
+                  checked={uploadMode === 'multiple'}
+                  onChange={(e) => {
+                    setUploadMode(e.target.checked ? 'multiple' : 'single');
+                    setSelectedFile(null);
+                    setSelectedFiles([]);
+                  }}
+                  className="rounded border-gray-300 text-red-600 focus:ring-red-500"
+                />
+              </div>
+            </div>
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-red-400 transition-colors">
               <input
                 id="file-input"
                 type="file"
                 onChange={handleFileSelect}
                 accept="image/*,video/*"
+                multiple={uploadMode === 'multiple'}
                 className="hidden"
                 required={uploadType === 'file'}
               />
@@ -312,17 +404,41 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ onUploadSuccess }) => {
                 <div className="flex flex-col items-center space-y-2">
                   {getFileIcon()}
                   <div className="text-sm text-gray-600">
-                    {selectedFile ? (
-                      <div className="space-y-1">
-                        <p className="font-medium">{selectedFile.name}</p>
-                        <p className="text-xs">{formatFileSize(selectedFile.size)}</p>
-                      </div>
+                    {uploadMode === 'single' ? (
+                      selectedFile ? (
+                        <div className="space-y-1">
+                          <p className="font-medium">{selectedFile.name}</p>
+                          <p className="text-xs">{formatFileSize(selectedFile.size)}</p>
+                        </div>
+                      ) : (
+                        <>
+                          <p className="font-medium">Clique para selecionar um arquivo</p>
+                          <p className="text-xs">Imagens (JPG, PNG, GIF, WebP) ou Vídeos (MP4, AVI, MOV, WMV, FLV, WebM)</p>
+                          <p className="text-xs">Tamanho máximo: 50MB</p>
+                        </>
+                      )
                     ) : (
-                      <>
-                        <p className="font-medium">Clique para selecionar um arquivo</p>
-                        <p className="text-xs">Imagens (JPG, PNG, GIF, WebP) ou Vídeos (MP4, AVI, MOV, WMV, FLV, WebM)</p>
-                        <p className="text-xs">Tamanho máximo: 50MB</p>
-                      </>
+                      selectedFiles.length > 0 ? (
+                        <div className="space-y-1">
+                          <p className="font-medium">{selectedFiles.length} arquivo(s) selecionado(s)</p>
+                          <div className="text-xs space-y-1 max-h-24 overflow-y-auto">
+                            {selectedFiles.map((file, index) => (
+                              <div key={index} className="flex justify-between items-center">
+                                <span className="truncate">{file.name}</span>
+                                <span>{formatFileSize(file.size)}</span>
+                              </div>
+                            ))}
+                          </div>
+                          <p className="text-xs text-green-600">Total: {formatFileSize(selectedFiles.reduce((acc, file) => acc + file.size, 0))}</p>
+                        </div>
+                      ) : (
+                        <>
+                          <p className="font-medium">Clique para selecionar múltiplos arquivos</p>
+                          <p className="text-xs">Segure Ctrl/Cmd para selecionar vários arquivos</p>
+                          <p className="text-xs">Imagens (JPG, PNG, GIF, WebP) ou Vídeos (MP4, AVI, MOV, WMV, FLV, WebM)</p>
+                          <p className="text-xs">Tamanho máximo: 50MB por arquivo</p>
+                        </>
+                      )
                     )}
                   </div>
                 </div>
@@ -377,7 +493,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({ onUploadSuccess }) => {
         {/* Botão de Submit */}
         <button
           type="submit"
-          disabled={uploading || !selectedModality || !title || (uploadType === 'file' ? !selectedFile : !mediaUrl)}
+          disabled={uploading || !selectedModality || !title || (uploadType === 'file' ? selectedFiles.length === 0 : !mediaUrl)}
           className="w-full bg-gradient-to-r from-red-600 to-red-700 text-white py-3 px-4 rounded-md font-medium hover:from-red-700 hover:to-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center space-x-2"
         >
           {uploading ? (

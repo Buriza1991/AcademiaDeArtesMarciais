@@ -14,13 +14,13 @@ const Planos: React.FC = () => {
   const planos = [
     {
       name: 'Básico',
-      price: 'R$ 89',
+      price: 'R$ 100,00',
       period: '/mês',
       description: 'Perfeito para iniciantes',
       features: [
-        '2x por semana',
-        '1 modalidade',
-        'Acesso ao vestiário',
+        '3x por semana',
+        ' 1h de aulas particulares 2x por semana',
+        '2 modalidades',
         'Acompanhamento básico',
         'Certificado de participação'
       ],
@@ -36,7 +36,7 @@ const Planos: React.FC = () => {
         'Acesso ilimitado',
         '3 modalidades',
         'Aulas personalizadas',
-        'Acompanhamento nutricional',
+        'Acompanhamento Semanal',
         'Acesso a eventos',
         'Kit de uniforme',
         'Desconto em produtos'

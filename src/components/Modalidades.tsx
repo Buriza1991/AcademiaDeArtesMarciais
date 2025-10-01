@@ -45,12 +45,19 @@ const Modalidades: React.FC = () => {
   return (
     <section id="modalidades" className="py-20 bg-gray-900">
       <div className="container mx-auto px-6">
-        <div ref={ref} className={`text-center mb-16 transition-all duration-1000 ${
-          inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-        }`}>
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-            Nossas <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-white">Modalidades</span>
+        <div ref={ref} className={`text-center mb-16 transition-all duration-1000 ${inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+          }`}>
+          <h2 className="text-4xl md:text-5xl font-bold text-red-700 mb-6 
+               [text-shadow:2px_2px_0px_white] relative">
+            Nossas <span className="relative text-red-700 
+                          [paint-order:stroke_fill] 
+                          [stroke:white] 
+                          [stroke-width:2px] 
+                          drop-shadow-[3px_3px_8px_rgba(0,0,0,0.4)]">
+              Modalidades
+            </span>
           </h2>
+
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
             Descubra a arte marcial perfeita para você. Cada modalidade oferece benefícios únicos para seu desenvolvimento físico e mental.
           </p>
@@ -60,9 +67,8 @@ const Modalidades: React.FC = () => {
           {modalidades.map((modalidade, index) => (
             <div
               key={index}
-              className={`group bg-gray-800 rounded-2xl overflow-hidden shadow-2xl hover:shadow-red-500/20 transition-all duration-500 hover:-translate-y-2 ${
-                inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-              }`}
+              className={`group bg-gray-800 rounded-2xl overflow-hidden shadow-2xl hover:shadow-red-500/20 transition-all duration-500 hover:-translate-y-2 ${inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+                }`}
               style={{ transitionDelay: `${index * 100}ms` }}
             >
               <div className="relative overflow-hidden">
@@ -111,7 +117,7 @@ const Modalidades: React.FC = () => {
 
                 <button className="w-full bg-gradient-to-r from-red-600 to-red-700 text-white py-3 rounded-lg font-semibold hover:scale-105 transition-transform duration-300">
                   Aula Experimental
-                  
+
                 </button>
               </div>
             </div>

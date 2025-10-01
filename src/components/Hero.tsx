@@ -2,7 +2,7 @@ import React from 'react';
 import { useInView } from 'react-intersection-observer';
 import { useNavigate } from 'react-router-dom';
 import { Play, Users, Award, Target } from 'lucide-react';
-import FundoSite from '../image/FUNDOSITE.jpeg';
+import FundoSite from '../image/Screenshot_9.jpg';
 
 const Hero: React.FC = () => {
   const navigate = useNavigate();

@@ -44,7 +44,96 @@ const Cadastro: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Estados para validação de campos
+  const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const [touched, setTouched] = useState<{[key: string]: boolean}>({});
+
   // Removido o redirecionamento automático para permitir acesso à página de cadastro
+
+  // Função para validar campos
+  const validateField = (name: string, value: string) => {
+    const phoneRegex = /^\(\d{2}\)\s\d{4,5}-\d{4}$|^\d{10,11}$/;
+    
+    switch (name) {
+      case 'name':
+        return value.trim().length < 2 ? 'Nome deve ter pelo menos 2 caracteres' : '';
+      case 'email':
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return !emailRegex.test(value) ? 'Email inválido' : '';
+      case 'password':
+        return value.length < 6 ? 'Senha deve ter pelo menos 6 caracteres' : '';
+      case 'birthDate':
+        return !value ? 'Data de nascimento é obrigatória' : '';
+      case 'cpf':
+        const cpfRegex = /^\d{3}\.\d{3}\.\d{3}-\d{2}$|^\d{11}$/;
+        return !cpfRegex.test(value.replace(/\D/g, '')) ? 'CPF inválido' : '';
+      case 'phone':
+        return !phoneRegex.test(value.replace(/\D/g, '')) ? 'Telefone inválido' : '';
+      case 'address':
+        return value.trim().length < 10 ? 'Endereço deve ser mais detalhado' : '';
+      case 'responsibleName':
+        return ageGroup === 'infantil' && value.trim().length < 2 ? 'Nome do responsável é obrigatório para menores' : '';
+      case 'responsiblePhone':
+        return ageGroup === 'infantil' && !phoneRegex.test(value.replace(/\D/g, '')) ? 'Telefone do responsável é obrigatório para menores' : '';
+      default:
+        return '';
+    }
+  };
+
+  // Função para validar todos os campos
+  const validateAllFields = () => {
+    const newErrors: {[key: string]: string} = {};
+    
+    newErrors.name = validateField('name', name);
+    newErrors.email = validateField('email', email);
+    newErrors.password = validateField('password', password);
+    newErrors.birthDate = validateField('birthDate', birthDate);
+    newErrors.cpf = validateField('cpf', cpf);
+    newErrors.phone = validateField('phone', phone);
+    newErrors.address = validateField('address', address);
+    
+    if (ageGroup === 'infantil') {
+      newErrors.responsibleName = validateField('responsibleName', responsibleName);
+      newErrors.responsiblePhone = validateField('responsiblePhone', responsiblePhone);
+    }
+
+    // Verificar consentimentos
+    if (!termsAccepted) {
+      newErrors.terms = 'Você deve aceitar os termos e regulamento';
+    }
+
+    // Remove campos vazios
+    Object.keys(newErrors).forEach(key => {
+      if (!newErrors[key]) delete newErrors[key];
+    });
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Handler para quando o usuário sai do campo
+  const handleBlur = (fieldName: string) => {
+    setTouched(prev => ({ ...prev, [fieldName]: true }));
+    const fieldValue = getFieldValue(fieldName);
+    const error = validateField(fieldName, fieldValue);
+    setErrors(prev => ({ ...prev, [fieldName]: error }));
+  };
+
+  // Função para obter o valor do campo
+  const getFieldValue = (fieldName: string) => {
+    switch (fieldName) {
+      case 'name': return name;
+      case 'email': return email;
+      case 'password': return password;
+      case 'birthDate': return birthDate;
+      case 'cpf': return cpf;
+      case 'phone': return phone;
+      case 'address': return address;
+      case 'responsibleName': return responsibleName;
+      case 'responsiblePhone': return responsiblePhone;
+      default: return '';
+    }
+  };
 
   // Listas de faixas
   const beltsJiuInfantil = [
@@ -121,8 +210,9 @@ const Cadastro: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!termsAccepted) {
-      setError('Você deve aceitar os termos e regulamento.');
+    // Validar todos os campos
+    if (!validateAllFields()) {
+      setError('Por favor, corrija os erros no formulário.');
       return;
     }
 
@@ -218,31 +308,92 @@ const Cadastro: React.FC = () => {
           {/* Dados pessoais */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Nome completo</label>
-            <input value={name} onChange={e => setName(e.target.value)} className="w-full px-3 py-2 border rounded-md" required />
+            <input 
+              value={name} 
+              onChange={e => setName(e.target.value)}
+              onBlur={() => handleBlur('name')}
+              className={`w-full px-3 py-2 border rounded-md ${errors.name ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-blue-500'} focus:outline-none focus:ring-1 ${errors.name ? 'focus:ring-red-500' : 'focus:ring-blue-500'}`}
+              required 
+            />
+            {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Data de Nascimento</label>
-              <input type="date" value={birthDate} onChange={e => setBirthDate(e.target.value)} className="w-full px-3 py-2 border rounded-md" required />
+              <input 
+                type="date" 
+                value={birthDate} 
+                onChange={e => setBirthDate(e.target.value)}
+                onBlur={() => handleBlur('birthDate')}
+                className={`w-full px-3 py-2 border rounded-md ${errors.birthDate ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-blue-500'} focus:outline-none focus:ring-1 ${errors.birthDate ? 'focus:ring-red-500' : 'focus:ring-blue-500'}`}
+                required 
+              />
+              {errors.birthDate && <p className="text-red-500 text-sm mt-1">{errors.birthDate}</p>}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">CPF</label>
-              <input value={cpf} onChange={e => setCpf(e.target.value)} className="w-full px-3 py-2 border rounded-md" required />
+              <input 
+                value={cpf} 
+                onChange={e => setCpf(e.target.value)}
+                onBlur={() => handleBlur('cpf')}
+                placeholder="000.000.000-00"
+                className={`w-full px-3 py-2 border rounded-md ${errors.cpf ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-blue-500'} focus:outline-none focus:ring-1 ${errors.cpf ? 'focus:ring-red-500' : 'focus:ring-blue-500'}`}
+                required 
+              />
+              {errors.cpf && <p className="text-red-500 text-sm mt-1">{errors.cpf}</p>}
             </div>
           </div>
 
           {/* Contato */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
-            <input value={phone} onChange={e => setPhone(e.target.value)} className="w-full px-3 py-2 border rounded-md" required />
+            <input 
+              value={phone} 
+              onChange={e => setPhone(e.target.value)}
+              onBlur={() => handleBlur('phone')}
+              placeholder="(11) 99999-9999"
+              className={`w-full px-3 py-2 border rounded-md ${errors.phone ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-blue-500'} focus:outline-none focus:ring-1 ${errors.phone ? 'focus:ring-red-500' : 'focus:ring-blue-500'}`}
+              required 
+            />
+            {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full px-3 py-2 border rounded-md" required />
+            <input 
+              type="email" 
+              value={email} 
+              onChange={e => setEmail(e.target.value)}
+              onBlur={() => handleBlur('email')}
+              placeholder="seu@email.com"
+              className={`w-full px-3 py-2 border rounded-md ${errors.email ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-blue-500'} focus:outline-none focus:ring-1 ${errors.email ? 'focus:ring-red-500' : 'focus:ring-blue-500'}`}
+              required 
+            />
+            {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Senha</label>
+            <input 
+              type="password" 
+              value={password} 
+              onChange={e => setPassword(e.target.value)}
+              onBlur={() => handleBlur('password')}
+              placeholder="Mínimo 6 caracteres"
+              className={`w-full px-3 py-2 border rounded-md ${errors.password ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-blue-500'} focus:outline-none focus:ring-1 ${errors.password ? 'focus:ring-red-500' : 'focus:ring-blue-500'}`}
+              required 
+            />
+            {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Endereço completo</label>
-            <input value={address} onChange={e => setAddress(e.target.value)} className="w-full px-3 py-2 border rounded-md" required />
+            <input 
+              value={address} 
+              onChange={e => setAddress(e.target.value)}
+              onBlur={() => handleBlur('address')}
+              placeholder="Rua, número, bairro, cidade, CEP"
+              className={`w-full px-3 py-2 border rounded-md ${errors.address ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-blue-500'} focus:outline-none focus:ring-1 ${errors.address ? 'focus:ring-red-500' : 'focus:ring-blue-500'}`}
+              required 
+            />
+            {errors.address && <p className="text-red-500 text-sm mt-1">{errors.address}</p>}
           </div>
 
           {/* Foto do aluno */}
@@ -332,11 +483,26 @@ const Cadastro: React.FC = () => {
               <h3 className="font-semibold text-gray-800 mt-4">Responsável Legal</h3>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Nome do responsável</label>
-                <input value={responsibleName} onChange={e => setResponsibleName(e.target.value)} className="w-full px-3 py-2 border rounded-md" required={age<18} />
+                <input 
+                  value={responsibleName} 
+                  onChange={e => setResponsibleName(e.target.value)}
+                  onBlur={() => handleBlur('responsibleName')}
+                  className={`w-full px-3 py-2 border rounded-md ${errors.responsibleName ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-blue-500'} focus:outline-none focus:ring-1 ${errors.responsibleName ? 'focus:ring-red-500' : 'focus:ring-blue-500'}`}
+                  required={age<18} 
+                />
+                {errors.responsibleName && <p className="text-red-500 text-sm mt-1">{errors.responsibleName}</p>}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Telefone do responsável</label>
-                <input value={responsiblePhone} onChange={e => setResponsiblePhone(e.target.value)} className="w-full px-3 py-2 border rounded-md" required={age<18} />
+                <input 
+                  value={responsiblePhone} 
+                  onChange={e => setResponsiblePhone(e.target.value)}
+                  onBlur={() => handleBlur('responsiblePhone')}
+                  placeholder="(11) 99999-9999"
+                  className={`w-full px-3 py-2 border rounded-md ${errors.responsiblePhone ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-blue-500'} focus:outline-none focus:ring-1 ${errors.responsiblePhone ? 'focus:ring-red-500' : 'focus:ring-blue-500'}`}
+                  required={age<18} 
+                />
+                {errors.responsiblePhone && <p className="text-red-500 text-sm mt-1">{errors.responsiblePhone}</p>}
               </div>
             </>
           )}
@@ -380,20 +546,28 @@ const Cadastro: React.FC = () => {
             <textarea value={priorExperience} onChange={e => setPriorExperience(e.target.value)} className="w-full px-3 py-2 border rounded-md" placeholder="Modalidade, tempo, faixa..." />
           </div>
 
-          {/* Senha */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Senha</label>
-            <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full px-3 py-2 border rounded-md" required />
-          </div>
-
           {/* Consentimentos */}
-          <div className="flex items-center space-x-2">
-            <input type="checkbox" checked={termsAccepted} onChange={e => setTermsAccepted(e.target.checked)} />
-            <span className="text-sm">Li e aceito os termos e regulamento da academia.</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <input type="checkbox" checked={imageConsent} onChange={e => setImageConsent(e.target.checked)} />
-            <span className="text-sm">Autorizo o uso de imagem para divulgação.</span>
+          <div className="space-y-3">
+            <div className="flex items-start space-x-2">
+              <input 
+                type="checkbox" 
+                checked={termsAccepted} 
+                onChange={e => setTermsAccepted(e.target.checked)}
+                className="mt-1"
+              />
+              <span className="text-sm">Li e aceito os termos e regulamento da academia.</span>
+            </div>
+            {errors.terms && <p className="text-red-500 text-sm">{errors.terms}</p>}
+            
+            <div className="flex items-start space-x-2">
+              <input 
+                type="checkbox" 
+                checked={imageConsent} 
+                onChange={e => setImageConsent(e.target.checked)}
+                className="mt-1"
+              />
+              <span className="text-sm">Autorizo o uso de imagem para divulgação.</span>
+            </div>
           </div>
 
           {error && <div className="text-red-600 text-sm text-center">{error}</div>}
