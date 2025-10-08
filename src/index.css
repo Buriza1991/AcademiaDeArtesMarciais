@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'Sonic Extra Bold';
+  src: url('./fonts/sonic-extra-bold_oewvA/Sonic Extra Bold/Sonic Extra Bold.otf') format('opentype');
+  font-weight: 800;
+  font-style: normal;
+}
+
+/* Scroll suave e compensação para header fixo */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Compensação para links de ancoragem com header fixo */
+section[id] {
+  scroll-margin-top: 120px;
+}
+
+/* Garantir que o body não tenha margin/padding que interfira */
+body {
+  margin: 0;
+  padding: 0;
+}

@@ -1,0 +1,29 @@
+# Imagem base
+FROM node:18-alpine
+
+# Define o diretório de trabalho
+WORKDIR /app
+
+# Instala dependências do sistema
+RUN apk add --no-cache sqlite
+
+# Copia os arquivos de dependências
+COPY package*.json ./
+
+# Instala as dependências
+RUN npm ci
+
+# Copia o código fonte
+COPY . .
+
+# Gera o cliente Prisma
+RUN npx prisma generate
+
+# Cria o diretório de uploads se não existir
+RUN mkdir -p uploads
+
+# Expõe a porta 3001
+EXPOSE 3001
+
+# Comando para iniciar a aplicação
+CMD ["npm", "run", "dev"] 

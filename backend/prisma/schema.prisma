@@ -1,0 +1,245 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// Modelo de Usuários
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      UserRole @default(ALUNO)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relacionamentos
+  profile     Profile?
+  enrollments Enrollment[]
+  payments    Payment[]
+  contacts    Contact[]
+  schedules   Schedule[]
+  media       Media[]
+
+  @@map("users")
+}
+
+// Perfil do usuário
+model Profile {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  phone             String?
+  birthDate         DateTime?
+  address           String?
+  emergencyContact  String?
+  emergencyPhone    String?
+  healthIssues      String?
+  experience        String?
+  objectives        String?
+  avatar            String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relacionamentos
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("profiles")
+}
+
+// Modalidades
+model Modality {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String
+  image       String?
+  videoUrl    String?
+  benefits    String   // SQLite não suporta JSON nativo, usando String
+  minAge      Int
+  duration    Int // em minutos
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relacionamentos
+  enrollments Enrollment[]
+  schedules   Schedule[]
+  media       Media[]
+
+  @@map("modalities")
+}
+
+// Planos
+model Plan {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String
+  price       Float
+  period      String   @default("month") // month, quarter, year
+  features    String   // SQLite não suporta JSON nativo, usando String
+  popular     Boolean  @default(false)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relacionamentos
+  enrollments Enrollment[]
+
+  @@map("plans")
+}
+
+// Matrículas
+model Enrollment {
+  id         String   @id @default(cuid())
+  userId     String
+  modalityId String
+  planId     String
+  status     EnrollmentStatus @default(ACTIVE)
+  startDate  DateTime @default(now())
+  endDate    DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relacionamentos
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  modality Modality @relation(fields: [modalityId], references: [id])
+  plan     Plan     @relation(fields: [planId], references: [id])
+  payments Payment[]
+
+  @@map("enrollments")
+}
+
+// Pagamentos
+model Payment {
+  id           String        @id @default(cuid())
+  userId       String
+  enrollmentId String?
+  amount       Float
+  method       PaymentMethod
+  status       PaymentStatus @default(PENDING)
+  description  String?
+  dueDate      DateTime
+  paidAt       DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  // Relacionamentos
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  enrollment Enrollment? @relation(fields: [enrollmentId], references: [id])
+
+  @@map("payments")
+}
+
+// Contatos
+model Contact {
+  id        String   @id @default(cuid())
+  userId    String?
+  name      String
+  email     String
+  phone     String?
+  subject   String
+  message   String
+  status    ContactStatus @default(PENDING)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relacionamentos
+  user User? @relation(fields: [userId], references: [id])
+
+  @@map("contacts")
+}
+
+// Agendamentos
+model Schedule {
+  id         String   @id @default(cuid())
+  userId     String
+  modalityId String
+  date       DateTime
+  time       String
+  status     ScheduleStatus @default(SCHEDULED)
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relacionamentos
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  modality Modality @relation(fields: [modalityId], references: [id])
+
+  @@map("schedules")
+}
+
+// Mídia (Fotos e Vídeos)
+model Media {
+  id         String   @id @default(cuid())
+  modalityId String
+  uploadedBy String
+  title      String
+  description String?
+  fileUrl    String
+  fileType   MediaType
+  fileSize   Int      // em bytes
+  fileName   String
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relacionamentos
+  modality Modality @relation(fields: [modalityId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [uploadedBy], references: [id], onDelete: Cascade)
+
+  @@map("media")
+}
+
+// Enums
+enum UserRole {
+  ADMIN
+  INSTRUTOR
+  ALUNO
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  DEBIT_CARD
+  PIX
+  BANK_SLIP
+  CASH
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  CANCELLED
+  REFUNDED
+}
+
+enum ContactStatus {
+  PENDING
+  RESPONDED
+  CLOSED
+}
+
+enum ScheduleStatus {
+  SCHEDULED
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+} 

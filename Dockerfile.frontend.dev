@@ -1,0 +1,23 @@
+# Imagem base para desenvolvimento
+FROM node:18-alpine
+
+# Define o diretório de trabalho
+WORKDIR /app
+
+# Instala dependências do sistema
+RUN apk add --no-cache git
+
+# Copia os arquivos de dependências
+COPY package*.json ./
+
+# Instala as dependências
+RUN npm ci
+
+# Copia o código fonte (será montado como volume em desenvolvimento)
+COPY . .
+
+# Expõe a porta 5175
+EXPOSE 5175
+
+# Comando para iniciar o servidor de desenvolvimento
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"] 
