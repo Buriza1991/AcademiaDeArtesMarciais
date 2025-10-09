@@ -9,7 +9,11 @@ services:
     ports:
       - "5175:5175"
     environment:
-      - VITE_API_BASE_URL=http://localhost:3001/api
+      - VITE_API_BASE_URL=http://topteamfight.test:3001/api
+      - VITE_APP_HOSTNAME=topteamfight.test
+    extra_hosts:
+      - "topteamfight.test:host-gateway"
+      - "www.topteamfight.test:host-gateway"
     depends_on:
       - backend
     volumes:
@@ -38,8 +42,8 @@ services:
       - BCRYPT_ROUNDS=12
       - RATE_LIMIT_WINDOW_MS=900000
       - RATE_LIMIT_MAX_REQUESTS=100
-      - FRONTEND_URL=http://localhost:5175
-      - API_BASE_URL=http://localhost:3001/api
+      - FRONTEND_URL=http://topteamfight.test:5175
+      - API_BASE_URL=http://topteamfight.test:3001/api
     volumes:
       - ./backend/src:/app/src
       - ./backend/uploads:/app/uploads
